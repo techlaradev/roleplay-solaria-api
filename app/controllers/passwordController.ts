@@ -1,22 +1,12 @@
-import type { HttpContext } from '@adonisjs/core/http'
-import { inject } from "@adonisjs/core";
-import mail from '@adonisjs/mail/services/main';
-
+import mail from '@adonisjs/mail/services/main'
+import { HttpContext } from '@adonisjs/core/http'
+import ForgotPasswordMailer from '#mails/forgot_password_notification'
 export default class PasswordsController {
+  async forgetPassword({ request, response }: HttpContext) {
+    const { email, resetPasswordURL } = request.only(['email', 'resetPasswordURL'])
 
-    @inject()
-    async forgetPassword({response, request} : HttpContext){
-        const {email} = request.only(['email'])
+    await mail.send(new ForgotPasswordMailer(email, resetPasswordURL))
 
-        await mail.send((message) => {
-            message
-                .from('noreplay@solariaplays.com')
-                .to(email)
-                .subject('Roleplay Solaria: Recuperação de senha')
-                .text('A mesa de RPG te espera! entre no link para redefinir sua senha e iniciar uma nova aventura!')
-        })
-
-        return response.status(204)
-    }
-
+    return response.status(204)
+  }
 }
