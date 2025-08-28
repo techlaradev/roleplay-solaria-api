@@ -69,6 +69,7 @@
     "@adonisjs/mail": "^9.2.2",
     "@vinejs/vine": "^3.0.1",
     "better-sqlite3": "^12.2.0",
+    "edge.js": "^6.3.0",
     "japa": "^4.0.0",
     "luxon": "^3.7.1",
     "reflect-metadata": "^0.2.2",

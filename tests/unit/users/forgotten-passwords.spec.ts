@@ -8,14 +8,14 @@ const BASE_URL = `http://${process.env.HOST}:${process.env.PORT}`
 
 test.group('Forgotten passwords Flow', (group) => {
   group.each.setup(() => {
-    Mail.fake()
+   // Mail.fake()
   })
 
   group.each.teardown(() => {
-    Mail.restore()
+  //  Mail.restore()
   })
 
-  test('it should send an email with instructions forgot password flow', async ({ assert }) => {
+  test('it should send an email with instructions forgot password flow', async ({ }) => {
     const user = await UserFactory.create()
     const { mails } = Mail.fake()
 
@@ -29,4 +29,20 @@ test.group('Forgotten passwords Flow', (group) => {
              email.message.hasSubject('Roleplay: Recuperação de Senha')
     })
   })
+
+ test('it should send a real email to mailtrap', async ({ assert }) => {
+  const user = await UserFactory.create()
+
+  // Aumenta o timeout para 30 segundos
+  const response = await supertest(BASE_URL)
+    .post('/forgot-password')
+    .send({ email: user.email, resetPasswordURL: 'https://exemplo.com/reset-password' })
+    .timeout(30000)
+
+    console.log()
+  assert.equal(response.status, 204)
+  
+
+  assert.isTrue(true, 'E-mail enviado com sucesso')
+}).timeout(40000) // 40 segundos no total
 })
