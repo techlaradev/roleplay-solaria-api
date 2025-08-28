@@ -7,6 +7,12 @@ import { UpdateUserValidator } from "#validators/update_user"
 
 export default class UsersController {
 
+// @inject()
+// async create({request, response}: HttpContext){
+
+// }
+
+
 @inject()
 async store({request, response}: HttpContext) {
     

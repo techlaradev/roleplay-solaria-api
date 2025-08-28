@@ -1,11 +1,23 @@
 import { DateTime } from 'luxon'
-import { BaseModel, beforeSave, column } from '@adonisjs/lucid/orm'
+import { BaseModel, beforeSave, column, hasMany } from '@adonisjs/lucid/orm'
+import type { HasMany } from '@adonisjs/lucid/types/relations'
+import LinkToken from './link_token.js'
+
+// import crypto from 'crypto'
 import Hash from '@adonisjs/core/services/hash' // já veio instalada no adonis só bastou fazer o import mesmo
 
-
 export default class User extends BaseModel {
+  // @beforeCreate()
+  
+  //   static assignUuid(user:User){
+  //     if (!user.id){
+  //       user.id = crypto.randomUUID()
+  //     }
+  //   }
+
+
   @column({ isPrimary: true })
-  declare id: number
+  declare id: string
 
   @column()
   declare name: string
@@ -17,7 +29,7 @@ export default class User extends BaseModel {
   declare password: string
 
   @column() 
-declare avatar: string
+  declare avatar: string
 
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
@@ -30,5 +42,8 @@ declare avatar: string
     if (user.$dirty.password)
       user.password = await Hash.make(user.password)
   }
+
+  @hasMany(() => LinkToken)
+  declare token: HasMany<typeof LinkToken>
 
 }
