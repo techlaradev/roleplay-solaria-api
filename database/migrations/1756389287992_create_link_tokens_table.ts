@@ -11,7 +11,7 @@ export default class extends BaseSchema {
       .unsigned() // sabendo que esta coluna só aceita números inteiros, o unsigned não permite que esses números não venham negativos
       .unique()
       .notNullable()
-      .references('uuid')
+      .references('id')
       .inTable('users')
       .onDelete('CASCADE')
 
