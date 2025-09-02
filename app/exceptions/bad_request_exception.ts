@@ -10,10 +10,21 @@ export default class BadRequestException extends Exception {
   }
 
   async handle(error: this, ctx: HttpContext) {
-    ctx.response.status(error.status!).send({
+    // Se for um erro de "row not found", retorna 404
+    if (error.code === 'E_ROW_NOT_FOUND') {
+      return ctx.response.status(404).send({
+        code: BadRequestException.code,
+        message: error.message,
+        status: 404,
+        error: '404'
+      })
+    }
+
+    // Para outros erros, usa o status original
+    ctx.response.status(error.status || 400).send({
       code: BadRequestException.code,
       message: error.message,
-      status: error.status,
+      status: error.status || 400
     })
   }
 }

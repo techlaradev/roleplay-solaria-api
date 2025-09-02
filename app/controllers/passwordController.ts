@@ -3,10 +3,10 @@ import { HttpContext } from '@adonisjs/core/http'
 import ForgotPasswordMailer from '#mails/forgot_password_notification'
 import User from '#models/users'
 import { resetPasswordValidator } from '#validators/reset_password'
+import BadRequestException from '#exceptions/bad_request_exception'
 import LinkToken from '#models/link_token'
 
 export default class PasswordsController {
-
   async forgetPassword({ request, response }: HttpContext) {
     const { email, resetPasswordURL } = request.only(['email','resetPasswordURL'])
     const user = await User.findByOrFail('email', email)
@@ -16,23 +16,27 @@ export default class PasswordsController {
     return response.noContent()
   }
 
-  async resetPassword({request, response}:HttpContext){
-    const {token, password} = await request.validateUsing(resetPasswordValidator);
+  async resetPassword({ request, response }: HttpContext) {
+  const { token, password } = await request.validateUsing(resetPasswordValidator)
 
-    //inserção SQL - essa função vai buscar o usuário por token, se não achar deve falhar
-    const userByToken = await User.query()
-    .whereHas('token', (query) =>{
-      query.where('token', token)
-    }).firstOrFail()
+  try {
+    
+    const tokenRecord = await LinkToken.findByOrFail('token', token)
+    console.log('log 1',tokenRecord.userId)
+    const user = await User.findByOrFail('id',tokenRecord.userId)
+    
+    user.password = password
+    await user.save()
 
-    userByToken.password = password
-    await userByToken.save()
-
-
-   await LinkToken.query()
-   .where('token',token)
-   .delete()
+    // Deleta o token após o uso
+    await tokenRecord.delete()
 
     return response.noContent()
+  } catch (error) {
+    if (error.code === 'E_ROW_NOT_FOUND') {
+      throw new BadRequestException('Token não encontrado', 404)
+    }
+    throw error
+  }
   }
 }

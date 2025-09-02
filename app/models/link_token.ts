@@ -14,13 +14,13 @@ export default class LinkToken extends BaseModel {
   // }
 
   @column({ isPrimary: true })
-  declare id: string
+  declare id: number
 
   @column({})
   declare token : string
 
   @column({columnName: 'user_id'})
-  declare userId : string
+  declare userId : number
 
   @belongsTo(() => User, {
     foreignKey : 'user_id'

@@ -17,7 +17,7 @@ export default class User extends BaseModel {
 
 
   @column({ isPrimary: true })
-  declare id: string
+  declare id: number
 
   @column()
   declare name: string
