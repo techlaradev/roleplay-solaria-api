@@ -6,6 +6,8 @@ import ForgotPasswordMailer from '#mails/forgot_password_notification'
 import hash from '@adonisjs/core/services/hash'
 import LinkToken from '#models/link_token'
 import { TokenFactory } from '#database/factories/token_factory'
+import { assert } from 'console'
+import { DateTime, Duration } from 'luxon'
 
 const BASE_URL = `http://${process.env.HOST}:${process.env.PORT}`
 
@@ -40,6 +42,7 @@ test.group('Forgotten passwords Flow', (group) => {
   // Aumenta o timeout para 30 segundos
   const response = await supertest(BASE_URL)
     .post('/forgot-password')
+
     .send({ email: user.email, resetPasswordURL: 'https://exemplo.com/reset-password' })
     .timeout(30000)
 
@@ -53,8 +56,7 @@ test.group('Forgotten passwords Flow', (group) => {
 test('it should to be able the process to reset the password', async ({assert}) => {
 
   const user = await UserFactory.create()
-   const token = await user.related('token').create({token: 'tokenzito'})
-  //const token = await TokenFactory.merge({ userId: user.id }).create()
+  const token = await TokenFactory.merge({ userId: user.id }).create()
 
 
     await user.load('token')
@@ -63,7 +65,7 @@ test('it should to be able the process to reset the password', async ({assert}) 
    await supertest(BASE_URL)
   .post('/reset-password')
   .send({
-    token,
+    token: token.token,
     password:'123456'
   }).expect(204) //no content
 
@@ -111,6 +113,25 @@ test('it should return a 404 when the token was used twice', async ({ assert }) 
   // Ajuste as verificações conforme a estrutura real da resposta
   assert.equal(body.code, 'BAD_REQUEST')
   assert.equal(body.status, '404') // 404 é número, não string
+})
+
+test('it cannot reset password then the token is expired for 2 hours', async ({assert}) => {
+const user = await UserFactory.create()
+const date = DateTime.now().minus(Duration.fromISOTime('02:01'))
+const token = await TokenFactory.merge({ userId: user.id, createdAt: date  }).create()
+
+  // Primeira requisição (deve retornar 204)
+  const {body} = await supertest(BASE_URL)
+    .post('/reset-password')
+    .send({
+      token: token.token, // Use o token gerado pela factory
+      password: '123456'
+    })
+    .expect(410)
+
+  assert.equal(body.code, 'TOKEN_EXPIRED')
+  assert.equal(body.status, '410') // 404 é número, não string
+  assert.equal(body.message, 'token was expired') 
 })
 
 })

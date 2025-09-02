@@ -5,6 +5,7 @@ import User from '#models/users'
 import { resetPasswordValidator } from '#validators/reset_password'
 import BadRequestException from '#exceptions/bad_request_exception'
 import LinkToken from '#models/link_token'
+import ExpiredTokenException from '#exceptions/expired_token_exception'
 
 export default class PasswordsController {
   async forgetPassword({ request, response }: HttpContext) {
@@ -25,10 +26,15 @@ export default class PasswordsController {
     console.log('log 1',tokenRecord.userId)
     const user = await User.findByOrFail('id',tokenRecord.userId)
     
+   const tokenAge = Math.abs(tokenRecord.createdAt.diffNow('hours').hours)
+    if (tokenAge > 2)
+      throw new ExpiredTokenException()
+
     user.password = password
     await user.save()
 
-    // Deleta o token após o uso
+    // Deleta o token após o us
+
     await tokenRecord.delete()
 
     return response.noContent()
