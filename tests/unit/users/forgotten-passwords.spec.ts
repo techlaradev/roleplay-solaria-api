@@ -6,7 +6,6 @@ import ForgotPasswordMailer from '#mails/forgot_password_notification'
 import hash from '@adonisjs/core/services/hash'
 import LinkToken from '#models/link_token'
 import { TokenFactory } from '#database/factories/token_factory'
-import { assert } from 'console'
 import { DateTime, Duration } from 'luxon'
 
 const BASE_URL = `http://${process.env.HOST}:${process.env.PORT}`

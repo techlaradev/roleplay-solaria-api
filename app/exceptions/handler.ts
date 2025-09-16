@@ -23,7 +23,12 @@ async handle(error: Exception, ctx: HttpContext) {
         status: error.status,
         errors: (error as any).errors ?? [],
       })
+
+      
     }
+
+
+   
     return super.handle(error, ctx)
   }
 
