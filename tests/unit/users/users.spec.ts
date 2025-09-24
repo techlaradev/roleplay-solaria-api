@@ -5,10 +5,25 @@ import { faker } from '@faker-js/faker'
 import hash from '@adonisjs/core/services/hash'
 
 const BASE_URL = `http://${process.env.HOST}:${process.env.PORT}`
+let token = '';
 
 test.group('User flow', (group) => {
 
   //hooks
+  group.setup(async ()=> {
+    
+  const plainPassword = "123456789"
+
+  const {email} = await UserFactory.merge({password: plainPassword}).create() // aqui ele cria uma senha e um id como pré-existente
+
+  //logando, para poder alterar o usuário, é preciso do token
+    const loginResponse = await supertest(BASE_URL).post('/user-sessions').send({
+      email: email,
+      password: plainPassword,
+    })
+
+     token = loginResponse.body.token.token
+  })
   group.each.setup(() => {
     console.log('executed before the test')
   })
@@ -96,6 +111,7 @@ test.group('User flow', (group) => {
 
       const { body } = await supertest(BASE_URL)
       .post('/users')
+      .set('Authorization', `Bearer ${token}`)
       .send({
         name:'Lalazuli',
         email: 'janela-janelinha-porta-campainha',
@@ -129,15 +145,20 @@ test.group('User flow', (group) => {
 
 test('it should update an existent user', async({assert}) =>{
 
-  const {id, password} = await UserFactory.create() // aqui ele cria uma senha e um id como pré-existente
+  const plainPassword = "123456789"
+
+  const user = await UserFactory.merge({password: plainPassword}).create() // aqui ele cria uma senha e um id como pré-existente
+  
   const email = faker.internet.email()
   const avatar = 'https://github.com/techlaradev'
-   const { body } = await supertest(BASE_URL) 
-    .put(`/users/${id}`) // busca o usuário na rota
+
+  const { body } = await supertest(BASE_URL) 
+    .put(`/users/${user.id}`) 
+    .set('Authorization', `Bearer ${token}`)
     .send({
       email,
       avatar,
-      password
+      password: 'Janelajani',
     })
     .expect(200) //sucesso
 
@@ -145,7 +166,7 @@ test('it should update an existent user', async({assert}) =>{
           assert.exists(body.user, 'User undefined')
           assert.equal(body.user.email, email)
           assert.equal(body.user.avatar, avatar)
-          assert.equal(body.user.id, id)
+          assert.equal(body.user.id, user.id)
 
 
 
@@ -159,6 +180,7 @@ test('it should change the user´s password', async ({assert}) =>{
 
    const { body } = await supertest(BASE_URL) 
     .put(`/users/${user.id}`) // busca o usuário na rota
+    .set('Authorization', `Bearer ${token}`)
     .send({
       email: user.email,
       avatar: user.avatar,
@@ -182,6 +204,7 @@ const {id} = await UserFactory.create() // aqui ele cria uma senha e um id como 
 
    const { body } = await supertest(BASE_URL) 
     .put(`/users/${id}`) // busca o usuário na rota
+    .set('Authorization', `Bearer ${token}`)
     .send({})
     .expect(422) //sucesso
 
@@ -195,6 +218,7 @@ const email = 'joanita123-teste.com'
 
    const { body } = await supertest(BASE_URL) 
     .put(`/users/${user.id}`) // busca o usuário na rota
+    .set('Authorization', `Bearer ${token}`)
     .send({
       email,
       password:user.password,
@@ -214,6 +238,7 @@ const oldPassword = user.password
 
    await supertest(BASE_URL) 
     .put(`/users/${user.id}`) // busca o usuário na rota
+    .set('Authorization', `Bearer ${token}`)
     .send({
       email: user.email,
       password: 'fail',
@@ -232,6 +257,7 @@ const {id, email, password} = await UserFactory.create()
 
    const { body } = await supertest(BASE_URL) 
     .put(`/users/${id}`) // busca o usuário na rota
+    .set('Authorization', `Bearer ${token}`)
     .send({
       email,
       password,
