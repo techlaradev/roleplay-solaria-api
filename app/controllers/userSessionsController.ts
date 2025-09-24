@@ -15,4 +15,23 @@ export default class UserSessionsController {
 
     return response.created({ user, token })
 }
+
+@inject()
+async destroy({ auth, response }: HttpContext) {
+  const user = auth.user
+  if (!user) {
+    return response.unauthorized({ message: 'Not authenticated' })
+  }
+
+  const current = user.currentAccessToken
+  if (!current) {
+    return response.badRequest({ message: 'No token found in request' })
+  }
+
+  // Agora sim: passa user + identifier
+  await User.accessTokens.delete(user, current.identifier)
+
+  return response.ok({ message: 'Logout realizado com sucesso' })
+}
+
 }

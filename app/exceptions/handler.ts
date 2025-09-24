@@ -14,7 +14,7 @@ export default class HttpExceptionHandler extends ExceptionHandler {
    * response to the client
    */
 async handle(error: Exception, ctx: HttpContext) {
-
+console.log({error})
     // Se for uma exceção conhecida do Adonis
     if (error.status === 422) {
       return ctx.response.status(error.status).send({
@@ -26,6 +26,13 @@ async handle(error: Exception, ctx: HttpContext) {
 
       
     }
+
+    else if ( error.code === 'E_INVALID_CREDENTIALS')
+      return ctx.response.status(error.status).send({
+       code: 'BAD_REQUEST',
+        message: error.message,
+        status: error.status,
+      })
 
 
    
