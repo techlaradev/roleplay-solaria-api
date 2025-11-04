@@ -1,12 +1,12 @@
-import { UserFactory } from "#database/factories/index_factory";
 import { test } from "@japa/runner";
-import supertest from "supertest";
+import { UserFactory } from "#database/factories/index_factory";
 import User from "#models/users";
+import supertest from "supertest";
 
 const BASE_URL = `http://${process.env.HOST}:${process.env.PORT}`
 
 test.group('Session',(group) => {
-  
+
  group.each.setup(async () => {
   })
 
@@ -14,11 +14,11 @@ test.group('Session',(group) => {
   })
 
  test('it should autenticate an user', async ({assert}) =>{
-    
+
     const plainPassword = 'test1235';
     const {id,email} = await UserFactory.merge({password:plainPassword}).create()
-    
-    
+
+
     const { body } = await supertest(BASE_URL)
     .post('/user-sessions')
     .send({
@@ -34,11 +34,11 @@ test.group('Session',(group) => {
 
 
   test('it should return an api token when session is created', async ({assert}) =>{
-    
+
     const plainPassword = 'test1235';
     const {id,email} = await UserFactory.merge({password:plainPassword}).create()
-    
-    
+
+
     const { body } = await supertest(BASE_URL)
     .post('/user-sessions')
     .send({
@@ -46,7 +46,7 @@ test.group('Session',(group) => {
         password: plainPassword
     })
     .expect(201)
-    
+
     assert.equal(body.user.id, id)
 
     assert.isDefined(body.token, 'Token undefined')
@@ -54,18 +54,19 @@ test.group('Session',(group) => {
  })
 
 
- 
-  test('it should return 400 when credentials are not provided', async ({}) =>{
-    
+
+  // eslint-disable-next-line no-empty-pattern
+  test('it should return 400 when credentials are not provided', async ({ }) =>{
+
    // const plainPassword = 'test1235';
     //const {id,email} = await UserFactory.merge({password:plainPassword}).create()
-    
-    
+
+
     await supertest(BASE_URL)
     .post('/user-sessions')
     .send({})
     .expect(400)
-    
+
     // assert.equal(body.user.id, id)
 
     // assert.isDefined(body.token, 'Token undefined')
@@ -73,11 +74,11 @@ test.group('Session',(group) => {
  })
 
   test('it should return 400 when credentials are Invalid', async ({assert}) =>{
-    
-   
+
+
     const {email} = await UserFactory.create()
-    
-    
+
+
     const { body } = await supertest(BASE_URL)
     .post('/user-sessions')
     .send({
@@ -85,7 +86,7 @@ test.group('Session',(group) => {
         password:'testeresponsa'
     })
     .expect(400)
-    
+
     assert.equal(body.code, 'BAD_REQUEST')
     assert.equal(body.status, 400)
  })
@@ -94,8 +95,8 @@ test.group('Session',(group) => {
  test('it should return 200 when the user logout', async ({assert}) => {
  const plainPassword = 'test1235';
     const {id,email} = await UserFactory.merge({password:plainPassword}).create()
-    
-    
+
+
     const { body } = await supertest(BASE_URL)
     .post('/user-sessions')
     .send({
@@ -120,8 +121,8 @@ test.group('Session',(group) => {
 test('it should revoke token when the user logout', async ({assert}) => {
  const plainPassword = 'test1235';
     const user = await UserFactory.merge({password:plainPassword}).create()
-    
-    
+
+
     const { body } = await supertest(BASE_URL)
     .post('/user-sessions')
     .send({
@@ -146,7 +147,7 @@ test('it should revoke token when the user logout', async ({assert}) => {
     .delete('/user-sessions')
     .set('Authorization', `Bearer ${apiToken.token}`)
     .expect(200)
-    
+
     // Recarrega o usuário e seus tokens
   const refreshedUser = await User.findOrFail(user.id)
   await refreshedUser.load('token') // ou 'accessTokens', dependendo do relacionamento

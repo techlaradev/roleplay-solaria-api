@@ -1,17 +1,17 @@
-import { test } from '@japa/runner'
-import supertest from 'supertest'
-import { UserFactory } from '#database/factories/index_factory'
-import { faker } from '@faker-js/faker'
 import hash from '@adonisjs/core/services/hash'
+import { faker } from '@faker-js/faker'
+import { test } from '@japa/runner'
+import { UserFactory } from '#database/factories/index_factory'
+import supertest from 'supertest'
 
 const BASE_URL = `http://${process.env.HOST}:${process.env.PORT}`
-let token = '';
+let token = ''
 
 test.group('User flow', (group) => {
 
   //hooks
-  group.setup(async ()=> {
-    
+  group.setup(async () => {
+
   const plainPassword = "123456789"
 
   const {email} = await UserFactory.merge({password: plainPassword}).create() // aqui ele cria uma senha e um id como pré-existente
@@ -56,7 +56,7 @@ test.group('User flow', (group) => {
 
   test('it should return 409 when the email is already in use', async ({assert}) => {
     const { email } = await UserFactory.create()
- 
+
 
 
         const { body } = await supertest(BASE_URL)
@@ -78,7 +78,7 @@ test.group('User flow', (group) => {
 
  test('it should return 409 when the username is already in use', async ({assert}) => {
     const { name } = await UserFactory.create()
- 
+
         const { body } = await supertest(BASE_URL)
       .post('/users')
       .send({
@@ -118,10 +118,10 @@ test.group('User flow', (group) => {
         password: 'testeline',
       })
       .expect(422)
-      
+
       assert.include(body.code, 'BAD_REQUEST')
       assert.equal(body.status, 422)
-      
+
 
       }
     )
@@ -135,7 +135,7 @@ test.group('User flow', (group) => {
         password: '123',
       })
       .expect(422)
-      
+
       assert.include(body.code, 'BAD_REQUEST')
       assert.equal(body.status, 422)
 
@@ -148,23 +148,33 @@ test('it should update an existent user', async({assert}) =>{
   const plainPassword = "123456789"
 
   const user = await UserFactory.merge({password: plainPassword}).create() // aqui ele cria uma senha e um id como pré-existente
-  
-  const email = faker.internet.email()
+
+const tokenResponse = await supertest (BASE_URL)
+.post('/user-sessions')
+.send({
+  email:user.email,
+   password: plainPassword
+})
+.expect(201)
+console.log('🔑 User:', user)
+
+  const token = tokenResponse.body.token.token
   const avatar = 'https://github.com/techlaradev'
 
-  const { body } = await supertest(BASE_URL) 
-    .put(`/users/${user.id}`) 
+  const { body } = await supertest(BASE_URL)
+    .put(`/users/${user.id}`)
     .set('Authorization', `Bearer ${token}`)
     .send({
-      email,
+      email: user.email,
       avatar,
-      password: 'Janelajani',
+      password: plainPassword,
     })
     .expect(200) //sucesso
+console.log('🔑 token:', tokenResponse)
 
 
           assert.exists(body.user, 'User undefined')
-          assert.equal(body.user.email, email)
+          assert.equal(body.user.email, user.email)
           assert.equal(body.user.avatar, avatar)
           assert.equal(body.user.id, user.id)
 
@@ -175,25 +185,35 @@ test('it should update an existent user', async({assert}) =>{
 
 test('it should change the user´s password', async ({assert}) =>{
 
-  const user = await UserFactory.create() // aqui ele cria uma senha e um id como pré-existente
-  const password = 'testelina1234'
+  const passwordNew = 'testelina1234'
+  const user = await UserFactory.merge({password: passwordNew}).create() // aqui ele cria uma senha e um id como pré-existente
 
-   const { body } = await supertest(BASE_URL) 
+const tokenResponse = await supertest (BASE_URL)
+.post('/user-sessions')
+.send({
+  email:user.email,
+   password: passwordNew
+})
+.expect(201)
+
+  const token = tokenResponse.body.token.token
+
+   const { body } = await supertest(BASE_URL)
     .put(`/users/${user.id}`) // busca o usuário na rota
     .set('Authorization', `Bearer ${token}`)
     .send({
       email: user.email,
       avatar: user.avatar,
-      password,
+      password: passwordNew,
     })
     .expect(200) //sucesso
 
           assert.exists(body.user, 'User undefined')
           assert.equal(body.user.id, user.id)
-        
+
         // aqui estamos fazendo uma verificação de senha, como a nossa senha está criptografada, eu vou precisar do hash aqui
-        await user.refresh()  
-        assert.isTrue(await hash.verify(user.password, password))
+        await user.refresh()
+        assert.isTrue(await hash.verify(user.password, passwordNew))
 
       })
 
@@ -202,7 +222,7 @@ test('it should return a 422 when required data is not provided' , async ({asser
 const {id} = await UserFactory.create() // aqui ele cria uma senha e um id como pré-existente
 
 
-   const { body } = await supertest(BASE_URL) 
+   const { body } = await supertest(BASE_URL)
     .put(`/users/${id}`) // busca o usuário na rota
     .set('Authorization', `Bearer ${token}`)
     .send({})
@@ -216,7 +236,7 @@ test('it should return 422 when try to update email and is invalid', async  ({as
 const user = await UserFactory.create() // aqui ele cria um user mesmo
 const email = 'joanita123-teste.com'
 
-   const { body } = await supertest(BASE_URL) 
+   const { body } = await supertest(BASE_URL)
     .put(`/users/${user.id}`) // busca o usuário na rota
     .set('Authorization', `Bearer ${token}`)
     .send({
@@ -236,7 +256,7 @@ test('it should return 422 when try to update and password is invalid', async  (
 const user = await UserFactory.create() // aqui ele cria um user mesmo
 const oldPassword = user.password
 
-   await supertest(BASE_URL) 
+   await supertest(BASE_URL)
     .put(`/users/${user.id}`) // busca o usuário na rota
     .set('Authorization', `Bearer ${token}`)
     .send({
@@ -255,7 +275,7 @@ const oldPassword = user.password
 test('it should return 422 when try to update avatar and is invalid', async  ({assert})=> {
 const {id, email, password} = await UserFactory.create()
 
-   const { body } = await supertest(BASE_URL) 
+   const { body } = await supertest(BASE_URL)
     .put(`/users/${id}`) // busca o usuário na rota
     .set('Authorization', `Bearer ${token}`)
     .send({

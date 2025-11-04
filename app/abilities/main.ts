@@ -1,3 +1,4 @@
+import { Bouncer } from '@adonisjs/bouncer'
 /*
 |--------------------------------------------------------------------------
 | Bouncer abilities
@@ -12,12 +13,17 @@
 |
 */
 
-import { Bouncer } from '@adonisjs/bouncer'
+import User from '#models/users'
 
 /**
  * Delete the following ability to start from
  * scratch
  */
-export const editUser = Bouncer.ability(() => {
-  return true
+
+// resumo: só iremos deixar o usuário mudar alguma coisa no perfil dele se o id for igual!!
+//  ou seja, nada de intrusos
+export const editUser = Bouncer.ability(async (currentUser:User, userToEdit: User) => {
+  
+return currentUser.id === userToEdit.id
+
 })
