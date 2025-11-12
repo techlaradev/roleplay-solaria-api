@@ -20,7 +20,8 @@ test.group('Forgotten passwords Flow', (group) => {
     Mail.restore()
   })
 
-  test('it should send an email with instructions forgot password flow', async ({ }) => {
+  // eslint-disable-next-line no-empty-pattern
+  test('it should send an email with instructions forgot password flow', async ({}) => {
     const user = await UserFactory.create()
     const { mails } = Mail.fake()
 
@@ -47,7 +48,7 @@ test.group('Forgotten passwords Flow', (group) => {
 
     console.log()
   assert.equal(response.status, 204)
-  
+
 
   assert.isTrue(true, 'E-mail enviado com sucesso')
 }).timeout(40000) // 40 segundos no total
@@ -130,7 +131,7 @@ const token = await TokenFactory.merge({ userId: user.id, createdAt: date  }).cr
 
   assert.equal(body.code, 'TOKEN_EXPIRED')
   assert.equal(body.status, '410') // 404 é número, não string
-  assert.equal(body.message, 'token was expired') 
+  assert.equal(body.message, 'token was expired')
 })
 
 })
