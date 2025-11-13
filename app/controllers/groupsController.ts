@@ -11,6 +11,9 @@ export default class GroupsController {
   const groupPayload = await request.validateUsing(createGroupValidator)
   const group = await Group.create(groupPayload)
 
-  return response.created({group})
+  await group.related('players').attach([groupPayload.master])
+  await group.load('players')
+
+  return response.created({ group })
 }
 }

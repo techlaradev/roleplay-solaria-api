@@ -1,12 +1,12 @@
-import { BaseModel, column, hasMany } from '@adonisjs/lucid/orm'
+import { BaseModel, column, hasMany, manyToMany } from '@adonisjs/lucid/orm'
 import { compose } from '@adonisjs/core/helpers'
 import { DateTime } from 'luxon'
 import { DbAccessTokensProvider } from '@adonisjs/auth/access_tokens'
 import hash from '@adonisjs/core/services/hash' // já veio instalada no adonis só bastou fazer o import mesmo
-import type { HasMany } from '@adonisjs/lucid/types/relations'
+import type { HasMany, ManyToMany } from '@adonisjs/lucid/types/relations'
 import LinkToken from './link_token.js'
 import { withAuthFinder } from '@adonisjs/auth/mixins/lucid'
-
+import Group from './group.js'
 
 
 const AuthFinder = withAuthFinder(() => hash.use('scrypt'),{
@@ -18,7 +18,7 @@ const AuthFinder = withAuthFinder(() => hash.use('scrypt'),{
 export default class User extends compose (BaseModel,AuthFinder) {
 
   // @beforeCreate()
-  
+
   //   static assignUuid(user:User){
   //     if (!user.id){
   //       user.id = crypto.randomUUID()
@@ -38,7 +38,7 @@ export default class User extends compose (BaseModel,AuthFinder) {
   @column({serializeAs : null})
   declare password: string
 
-  @column() 
+  @column()
   declare avatar: string
 
   @column.dateTime({ autoCreate: true })
@@ -56,6 +56,10 @@ export default class User extends compose (BaseModel,AuthFinder) {
   @hasMany(() => LinkToken)
   declare token: HasMany<typeof LinkToken>
 
+  @manyToMany(() => Group, {
+    pivotTable:'groups_users'
+  })
+  declare groups: ManyToMany<typeof Group>
 
   static accessTokens = DbAccessTokensProvider.forModel(User, {
     expiresIn: '30 days',
