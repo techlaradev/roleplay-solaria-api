@@ -1,6 +1,7 @@
- import Group from '#models/group'
-import { createGroupValidator } from '#validators/create_group'
 import { inject } from '@adonisjs/core'
+import Group from '#models/group'
+import { createGroupValidator } from '#validators/create_group'
+
 import type { HttpContext } from '@adonisjs/core/http'
 
 export default class GroupsController {
