@@ -28,12 +28,7 @@ test.group('groups flow', (group) => {
     console.log('🔑 User:', user.email, 'Token:', token);
   });
 
-  group.each.teardown(async () => {
-const { body } = await supertest(BASE_URL)
-  .delete('/user-sessions').set
-    console.log('executed after the test');
 
-  });
 
   test('it should create a group', async ({ assert }) => {
     const groupPayload = {
@@ -88,6 +83,10 @@ const { body } = await supertest(BASE_URL)
     assert.equal(body.group.players.length, 1);
     assert.equal(body.group.players[0].id, groupPayload.master);
   });
+  group.each.teardown(async () => {
+    await supertest(BASE_URL).delete('user-sessions').set('Authorization', `Bearer ${token}`)
+    console.log('executed after the test');
 
+  });
 
 });
