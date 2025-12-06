@@ -36,8 +36,14 @@ let user: User
 
    const {body} = await supertest(BASE_URL)
     .post(`/groups/${group.id}/requests`)
+    .set('Authorization', `Bearer ${token}`)
     .send({})
     .expect(201)
+
+
+    console.log(body, 'body')
+console.log(body.groupRequest, 'groupRequest')
+
 
   assert.exists(body.groupRequest,'group request undefined')
   assert.equal(body.groupRequest.userId, user.id)
